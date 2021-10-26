@@ -1,0 +1,36 @@
+ipaddress = "http://192.168.146.130:11311";
+rosinit(ipaddress)
+laserSub = rossubscriber('/scan');
+[velPub,velMsg] = rospublisher('/mobile_base/commands/velocity');
+vfh = controllerVFH;
+vfh.UseLidarScan = true;
+vfh.DistanceLimits = [0.05 1];
+vfh.RobotRadius = 0.1;
+vfh.MinTurningRadius = 0.2;
+vfh.SafetyDistance = 0.1;
+targetDir = 0;
+rate = rateControl(10);
+while rate.TotalElapsedTime < 30
+
+	laserScan = receive(laserSub);
+	ranges = double(laserScan.Ranges);
+	angles = double(laserScan.readScanAngles);
+ 
+	
+        scan = lidarScan(ranges,angles);
+        
+	
+	steerDir = vfh(scan, targetDir);  
+    
+	if ~isnan(steerDir)
+		desiredV = 0.2;
+		w = exampleHelperComputeAngularVelocity(steerDir, 1);
+	else 
+		desiredV = 0.0;
+		w = 0.5;
+	end
+
+	velMsg.Linear.X = desiredV;
+	velMsg.Angular.Z = w;
+	velPub.send(velMsg);
+end
