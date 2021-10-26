@@ -1,0 +1,45 @@
+map = binaryOccupancyMap(100, 60, 1);
+occ = zeros(60, 100);
+
+occ(1,:) = 1;
+occ(end,:) = 1;
+occ([1:30, 51:60],1) = 1;
+occ([1:30, 51:60],end) = 1;
+
+occ(40,20:80) = 1;
+occ(28:52,[20:21 32:33 44:45 56:57 68:69 80:81]) = 1;
+
+occ(1:12, [20:21 32:33 44:45 56:57 68:69 80:81]) = 1;
+
+occ(end-12:end, [20:21 32:33 44:45 56:57 68:69 80:81]) = 1;
+
+setOccupancy(map, occ)
+
+figure
+show(map)
+title('PHANTOM WAREHOUSE NO.726 ')
+obstacleWidth = 6;
+obstacleHeight = 11;
+obstacleBottomLeftLocation = [36 42];
+values = ones(obstacleHeight, obstacleWidth);
+setOccupancy(map, obstacleBottomLeftLocation, values)
+figure 
+show(map)
+title('PHANTOM WAREHOUSE NO.726 Floor Plan with Obstacle')
+robotRadius = 0.2;
+map = copy(map);
+
+
+prm = mobileRobotPRM;
+prm.Map = map;
+prm.ConnectionDistance = 5;
+startLocation = [10 20];
+endLocation = [90 10];
+path = findpath(prm, startLocation, endLocation)
+while isempty(path)
+prm.NumNodes = prm.NumNodes + 10;
+update(prm);
+path = findpath(prm, startLocation, endLocation);
+end
+show (prm)
+
